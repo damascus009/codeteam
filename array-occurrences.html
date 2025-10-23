@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Підрахунок входжень елементів у масив</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .hint {
+            color: #999;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .array-display {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .array-display strong {
+            color: #667eea;
+        }
+
+        .occurrences-list {
+            list-style: none;
+        }
+
+        .occurrence-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .occurrence-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .element {
+            font-weight: 600;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .count {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .empty-message {
+            color: #999;
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔢 Підрахунок входжень елементів</h1>
+        <p class="subtitle">Введіть елементи масиву для аналізу</p>
+
+        <div class="input-section">
+            <label for="arrayInput">Елементи масиву:</label>
+            <input 
+                type="text" 
+                id="arrayInput" 
+                placeholder="Наприклад: яблуко, банан, яблуко, апельсин, банан, яблуко"
+            >
+            <p class="hint">💡 Розділяйте елементи комами</p>
+        </div>
+
+        <button onclick="countOccurrences()">Підрахувати входження</button>
+
+        <div class="results" id="results">
+            <h2>📊 Результати</h2>
+            <div class="array-display">
+                <strong>Масив:</strong> <span id="originalArray"></span>
+            </div>
+            <ul class="occurrences-list" id="occurrencesList"></ul>
+        </div>
+    </div>
+
+    <script>
+        // Функція для підрахунку входжень кожного елемента в масиві
+        function countOccurrences() {
+            const input = document.getElementById('arrayInput').value;
+            
+            // Якщо поле порожнє, використовуємо приклад
+            const arrayString = input.trim() || 'яблуко, банан, яблуко, апельсин, банан, яблуко, груша, банан';
+            
+            // Розбиваємо рядок на масив і очищаємо від пробілів
+            const array = arrayString.split(',').map(item => item.trim()).filter(item => item !== '');
+            
+            if (array.length === 0) {
+                alert('Будь ласка, введіть хоча б один елемент!');
+                return;
+            }
+            
+            // Підрахунок входжень за допомогою об'єкта
+            const occurrences = {};
+            array.forEach(element => {
+                occurrences[element] = (occurrences[element] || 0) + 1;
+            });
+            
+            // Альтернативний метод використовуючи Map
+            // const occurrencesMap = new Map();
+            // array.forEach(element => {
+            //     occurrencesMap.set(element, (occurrencesMap.get(element) || 0) + 1);
+            // });
+            
+            // Відображаємо результати
+            displayResults(array, occurrences);
+        }
+
+        // Функція для відображення результатів
+        function displayResults(array, occurrences) {
+            const resultsDiv = document.getElementById('results');
+            const originalArraySpan = document.getElementById('originalArray');
+            const occurrencesList = document.getElementById('occurrencesList');
+            
+            // Відображаємо оригінальний масив
+            originalArraySpan.textContent = `[${array.join(', ')}]`;
+            
+            // Очищаємо попередні результати
+            occurrencesList.innerHTML = '';
+            
+            // Сортуємо елементи за кількістю входжень (від більшого до меншого)
+            const sortedOccurrences = Object.entries(occurrences).sort((a, b) => b[1] - a[1]);
+            
+            // Створюємо список елементів з їх кількістю
+            sortedOccurrences.forEach(([element, count]) => {
+                const li = document.createElement('li');
+                li.className = 'occurrence-item';
+                li.innerHTML = `
+                    <span class="element">${element}</span>
+                    <span class="count">${count} ${count === 1 ? 'входження' : count < 5 ? 'входження' : 'входжень'}</span>
+                `;
+                occurrencesList.appendChild(li);
+            });
+            
+            // Показуємо блок результатів
+            resultsDiv.classList.add('show');
+            
+            // Виводимо в консоль для розробників
+            console.log('Масив:', array);
+            console.log('Підрахунок входжень:', occurrences);
+        }
+
+        // Додаємо можливість запуску по Enter
+        document.getElementById('arrayInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                countOccurrences();
+            }
+        });
+
+        // Приклад використання при завантаженні сторінки
+        window.addEventListener('load', function() {
+            // Автоматично показуємо приклад
+            setTimeout(() => {
+                document.getElementById('arrayInput').value = 'яблуко, банан, яблуко, апельсин, банан, яблуко, груша, банан';
+                countOccurrences();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
